@@ -12,15 +12,9 @@ export interface ChartData {
   momGrowth: number;
 }
 
-export interface CustomRange {
-  start: string; // 2025-01
-  end: string; // 2025-06
-}
-
 export interface DashboardState {
   filter: FilterType;
   stats: Stats;
   statsByFilter: Record<FilterType, Stats>;
   chartData: ChartData[];
-  customRange: CustomRange;
 }

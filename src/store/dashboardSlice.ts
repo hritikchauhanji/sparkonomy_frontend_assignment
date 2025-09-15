@@ -5,7 +5,6 @@ import type {
   Stats,
   ChartData,
   FilterType,
-  CustomRange,
 } from "../types/dashboard";
 
 const initialState: DashboardState = {
@@ -45,7 +44,6 @@ const initialState: DashboardState = {
     { month: "May", income: 5000, momGrowth: 80 },
     { month: "Jun", income: 0, momGrowth: -100 },
   ],
-  customRange: { start: "2025-01", end: "2025-06" },
 };
 
 const dashboardSlice = createSlice({
