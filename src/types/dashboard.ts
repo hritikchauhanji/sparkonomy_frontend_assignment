@@ -17,13 +17,32 @@ export interface CustomRange {
   end: string;
 }
 
+export type InvoiceStatus =
+  | "Update Status"
+  | "Paid"
+  | "Unpaid"
+  | "Partially Paid"
+  | "Awaited"
+  | "Overdue"
+  | "Draft"
+  | "Disputed";
+
+export interface Invoice {
+  id: number;
+  clientName: string;
+  amount: number;
+  dueDate: string;
+  status: InvoiceStatus;
+}
+
 export interface DashboardState {
   error: string | null;
   loading: boolean;
   filter: FilterType;
-  stats: Stats;
+  stats: Stats | null;
   statsByFilter: Partial<Record<FilterType, Stats>>;
   chartData: ChartData[];
   chartDataByFilter: Partial<Record<FilterType, ChartData[]>>;
   customRange?: CustomRange | null;
+  invoices: Invoice[];
 }

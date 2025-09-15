@@ -34,3 +34,37 @@
   --color-yellow_light: #fffae5;
   --color-yellow_dark: #ffcc00;
 }
+
+/* ========== Calendar Overrides ========== */
+.custom-calendar .rdrDefinedRangesWrapper {
+  display: none; /* hides sidebar */
+}
+
+.custom-calendar .rdrCalendarWrapper {
+  border-radius: 1rem; /* Tailwind rounded-2xl */
+  border: 1px solid var(--color-light_gray);
+  font-family: var(--font-roboto); /* use Roboto */
+}
+
+/* Today’s date border */
+.custom-calendar .rdrDayToday .rdrDayNumber span {
+  border-color: var(--color-purple-g);
+}
+
+/* Normal day numbers */
+.custom-calendar .rdrDayNumber span {
+  font-weight: 500;
+  color: var(--color-gray_brand);
+}
+
+/* Selected / in-range day styling */
+.custom-calendar .rdrDaySelected span,
+.custom-calendar .rdrInRange span {
+  background: linear-gradient(
+    to right,
+    var(--color-pink-g),
+    var(--color-purple-g),
+    var(--color-blue-g)
+  );
+  color: #fff !important;
+}

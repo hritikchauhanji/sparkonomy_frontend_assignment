@@ -23,6 +23,7 @@ import { useAppSelector } from "../store/hooks";
 
 export default function IncomeTrendChart() {
   const { chartData, loading } = useAppSelector((s) => s.dashboard);
+  const maxIncome = Math.max(...chartData.map((d) => d.income), 0);
 
   if (loading) {
     return (
@@ -57,7 +58,7 @@ export default function IncomeTrendChart() {
                 yAxisId="left"
                 orientation="left"
                 stroke="#9333ea"
-                domain={[0, 8000]}
+                domain={[0, Math.ceil(maxIncome / 1000) * 1000]}
                 tickFormatter={(value) => `$${value / 1000}k`}
                 tick={{ fill: "#999999", fontSize: 14, fontWeight: 500 }}
               />
@@ -70,7 +71,14 @@ export default function IncomeTrendChart() {
                 tickFormatter={(value) => `${value}%`}
                 tick={{ fill: "#999999", fontSize: 14, fontWeight: 500 }}
               />
-              <Tooltip />
+              <Tooltip
+                formatter={(value, name) => {
+                  if (name === "Income")
+                    return [`$${Number(value).toLocaleString()}`, name];
+                  if (name === "momGrowth %") return [`${value}%`, name];
+                  return [value, name];
+                }}
+              />
               <Legend
                 wrapperStyle={{
                   fontSize: 14,
@@ -78,9 +86,16 @@ export default function IncomeTrendChart() {
                 }}
               />
               {/* Reference lines mapping income to growth % */}
-              {[2000, 4000, 6000, 8000].map((y) => (
+              {Array.from(
+                { length: Math.ceil(maxIncome / 2000) },
+                (_, i) => (i + 1) * 2000
+              ).map((y) => (
                 <ReferenceLine key={y} yAxisId="left" y={y} stroke="#e5e7eb" />
               ))}
+
+              {/* {[2000, 4000, 6000, 8000].map((y) => (
+                <ReferenceLine key={y} yAxisId="left" y={y} stroke="#e5e7eb" />
+              ))} */}
               {/* <ReferenceLine yAxisId="left" y={2000} stroke="#dedede" />
               <ReferenceLine yAxisId="left" y={4000} stroke="#dedede" />
               <ReferenceLine yAxisId="left" y={6000} stroke="#dedede" />
@@ -99,7 +114,7 @@ export default function IncomeTrendChart() {
                 dataKey="momGrowth"
                 stroke="#7f1d1d"
                 strokeWidth={2}
-                name="momGrowth"
+                name="Growth %"
                 dot={false}
               />
             </ComposedChart>

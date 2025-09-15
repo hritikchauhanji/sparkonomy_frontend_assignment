@@ -1,40 +1,48 @@
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { fetchDashboardData, setFilter } from "../store/dashboardSlice";
-import type { FilterType } from "../types/dashboard";
+import {
+  fetchDashboardData,
+  setCustomRange,
+  setFilter,
+} from "../store/dashboardSlice";
+import type { CustomRange, FilterType } from "../types/dashboard";
+import { useState } from "react";
+import { DateRange } from "react-date-range";
+import "react-date-range/dist/styles.css"; // main css
+import "react-date-range/dist/theme/default.css"; // theme css
 
 // Gradient Calendar Icon
-const GradientCalendar = ({ size = 20, active = false }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={active ? "url(#calendar-gradient)" : "currentColor"}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={active ? "" : "text-gray-500"}
-  >
-    <defs>
-      <linearGradient id="calendar-gradient" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stopColor="var(--color-pink-g)" />
-        <stop offset="50%" stopColor="var(--color-purple-g)" />
-        <stop offset="100%" stopColor="var(--color-blue-g)" />
-      </linearGradient>
-    </defs>
-    <path d="M8 2v4" />
-    <path d="M16 2v4" />
-    <rect width="18" height="18" x="3" y="4" rx="2" />
-    <path d="M3 10h18" />
-    <path d="M8 14h.01" />
-    <path d="M12 14h.01" />
-    <path d="M16 14h.01" />
-    <path d="M8 18h.01" />
-    <path d="M12 18h.01" />
-    <path d="M16 18h.01" />
-  </svg>
-);
+// const GradientCalendar = ({ size = 20, active = false }) => (
+//   <svg
+//     xmlns="http://www.w3.org/2000/svg"
+//     width={size}
+//     height={size}
+//     viewBox="0 0 24 24"
+//     fill="none"
+//     stroke={active ? "url(#calendar-gradient)" : "currentColor"}
+//     strokeWidth="2"
+//     strokeLinecap="round"
+//     strokeLinejoin="round"
+//     className={active ? "" : "text-gray-500"}
+//   >
+//     <defs>
+//       <linearGradient id="calendar-gradient" x1="0" y1="0" x2="1" y2="1">
+//         <stop offset="0%" stopColor="var(--color-pink-g)" />
+//         <stop offset="50%" stopColor="var(--color-purple-g)" />
+//         <stop offset="100%" stopColor="var(--color-blue-g)" />
+//       </linearGradient>
+//     </defs>
+//     <path d="M8 2v4" />
+//     <path d="M16 2v4" />
+//     <rect width="18" height="18" x="3" y="4" rx="2" />
+//     <path d="M3 10h18" />
+//     <path d="M8 14h.01" />
+//     <path d="M12 14h.01" />
+//     <path d="M16 14h.01" />
+//     <path d="M8 18h.01" />
+//     <path d="M12 18h.01" />
+//     <path d="M16 18h.01" />
+//   </svg>
+// );
 
 // Gradient Crown Icon
 // const GradientCrown = ({ size = 20 }) => (
@@ -73,14 +81,54 @@ const options: {
   { label: "Calendar", value: "Calendar", custom: true },
 ];
 
+// helper → compute preset ranges
+function getPresetRange(type: FilterType): CustomRange {
+  const end = new Date();
+  const start = new Date();
+
+  if (type === "1Month") start.setMonth(end.getMonth() - 1);
+  if (type === "3Months") start.setMonth(end.getMonth() - 3);
+  if (type === "1Year") start.setFullYear(end.getFullYear() - 1);
+
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
 export default function Filters() {
   const dispatch = useAppDispatch();
   const selected = useAppSelector((state) => state.dashboard.filter);
+  const customRange = useAppSelector((state) => state.dashboard.customRange);
+
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [tempRange, setTempRange] = useState<CustomRange | null>(null);
 
   const handleClick = (v: FilterType) => {
-    dispatch(setFilter(v));
-    // You can pass customRange here if needed. Keep simple for now.
-    dispatch(fetchDashboardData({ filter: v }));
+    if (v === "Calendar") {
+      setShowCalendar((prev) => !prev);
+    } else {
+      const range = getPresetRange(v);
+      dispatch(setCustomRange(range));
+      dispatch(setFilter(v));
+      dispatch(fetchDashboardData({ filter: v, customRange: range }));
+    }
+  };
+
+  const handleRangeChange = (ranges: any) => {
+    const { selection } = ranges;
+    setTempRange({
+      start: selection.startDate.toISOString(),
+      end: selection.endDate.toISOString(),
+    });
+  };
+
+  const applyRange = () => {
+    if (tempRange) {
+      dispatch(setCustomRange(tempRange));
+      dispatch(setFilter("Calendar"));
+      dispatch(
+        fetchDashboardData({ filter: "Calendar", customRange: tempRange })
+      );
+    }
+    setShowCalendar(false);
   };
 
   return (
@@ -90,9 +138,16 @@ export default function Filters() {
         <span className="text-sparko-dark-gray font-roboto font-medium text-sm">
           Time Period
         </span>
-        <span className="text-sparko-dark-gray font-roboto text-[12px]">
-          dd:mm:yyyy - dd:mm:yyyy
-        </span>
+        {customRange ? (
+          <span className="text-sparko-dark-gray font-roboto text-[12px]">
+            {new Date(customRange.start).toLocaleDateString()} -{" "}
+            {new Date(customRange.end).toLocaleDateString()}
+          </span>
+        ) : (
+          <span className="text-sparko-dark-gray font-roboto text-[12px]">
+            dd:mm:yyyy - dd:mm:yyyy
+          </span>
+        )}
       </div>
 
       {/* Options */}
@@ -102,7 +157,6 @@ export default function Filters() {
           return (
             <button
               key={option.value}
-              // onClick={() => dispatch(setFilter(option.value))}
               onClick={() => handleClick(option.value)}
               className={`px-3 py-1 rounded-2xl border transition-all flex items-center gap-2 font-roboto border-gray-200
                 ${
@@ -113,7 +167,7 @@ export default function Filters() {
             >
               {option.custom ? (
                 <>
-                  <GradientCalendar size={18} active={isActive} />
+                  <img src="/Calendar.png" alt="Calendar" />
                   <span
                     className={`${
                       isActive
@@ -142,6 +196,48 @@ export default function Filters() {
           );
         })}
       </div>
+
+      {/* Calendar */}
+      {showCalendar && (
+        <div className="mt-4 p-4 bg-white rounded-2xl border-2 border-light_gray">
+          <DateRange
+            ranges={[
+              {
+                startDate: tempRange
+                  ? new Date(tempRange.start)
+                  : customRange
+                  ? new Date(customRange.start)
+                  : new Date(),
+                endDate: tempRange
+                  ? new Date(tempRange.end)
+                  : customRange
+                  ? new Date(customRange.end)
+                  : new Date(),
+                key: "selection",
+              },
+            ]}
+            onChange={handleRangeChange}
+            moveRangeOnFirstSelection={false}
+            minDate={new Date(new Date().getFullYear(), 0, 1)} // restrict to Jan 1
+            maxDate={new Date(new Date().getFullYear(), 11, 31)} // restrict to Dec 31
+            className="custom-calendar"
+          />
+          <div className="flex justify-end mt-3 gap-2">
+            <button
+              onClick={() => setShowCalendar(false)}
+              className="px-4 py-1 rounded-lg text-sm font-medium font-roboto bg-gray-100 hover:bg-gray-200 text-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={applyRange}
+              className="px-4 py-1 rounded-lg font-roboto text-sm font-medium bg-gradient-to-b from-[var(--color-pink-g)] via-[var(--color-purple-g)] to-[var(--color-blue-g)] text-white"
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,23 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import {
+  fetchInvoicesData,
+  updateInvoiceStatus,
+} from "../store/dashboardSlice";
 import { Pencil } from "lucide-react";
-
-type InvoiceStatus =
-  | "Update Status"
-  | "Paid"
-  | "Unpaid"
-  | "Partially Paid"
-  | "Awaited"
-  | "Overdue"
-  | "Draft"
-  | "Disputed";
-
-interface Invoice {
-  id: number;
-  clientName: string;
-  amount: string;
-  dueDate: string;
-  status: InvoiceStatus;
-}
+import type { Invoice, InvoiceStatus } from "../types/dashboard";
+import StatusDropdown from "./StatusDropdown";
 
 const statusStyles: Record<InvoiceStatus, string> = {
   Paid: "bg-green_light text-green_dark",
@@ -64,73 +53,25 @@ export const Bell = () => (
 );
 
 const InvoiceList = () => {
+  const dispatch = useAppDispatch();
+  const invoices = useAppSelector((s) => s.dashboard.invoices) || [];
+  const loading = useAppSelector((s) => s.dashboard.loading);
   const [open, setOpen] = useState(true);
 
-  const invoices: Invoice[] = [
-    {
-      id: 0,
-      clientName: "Client Name",
-      amount: "₹1,25,000",
-      dueDate: "2024-06-15",
-      status: "Update Status",
-    },
-    {
-      id: 1,
-      clientName: "Client Name",
-      amount: "₹1,25,000",
-      dueDate: "2024-06-15",
-      status: "Unpaid",
-    },
-    {
-      id: 2,
-      clientName: "Income Trend",
-      amount: "₹1,25,000",
-      dueDate: "2024-06-15",
-      status: "Disputed",
-    },
-    {
-      id: 3,
-      clientName: "Income Trend",
-      amount: "₹1,25,000",
-      dueDate: "2024-06-15",
-      status: "Paid",
-    },
-    {
-      id: 4,
-      clientName: "Income Trend",
-      amount: "₹1,25,000",
-      dueDate: "2024-06-15",
-      status: "Partially Paid",
-    },
-    {
-      id: 5,
-      clientName: "Income Trend",
-      amount: "₹1,25,000",
-      dueDate: "2024-06-15",
-      status: "Overdue",
-    },
-    {
-      id: 6,
-      clientName: "Income Trend",
-      amount: "₹1,25,000",
-      dueDate: "2024-06-15",
-      status: "Awaited",
-    },
-    {
-      id: 7,
-      clientName: "Income Trend",
-      amount: "₹1,25,000",
-      dueDate: "2024-06-15",
-      status: "Draft",
-    },
-    {
-      id: 8,
-      clientName: "Income Trend",
-      amount: "₹1,25,000",
-      dueDate: "2024-06-15",
-      status: "Paid",
-    },
+  const invoiceStatuses: InvoiceStatus[] = [
+    "Update Status",
+    "Paid",
+    "Unpaid",
+    "Partially Paid",
+    "Awaited",
+    "Overdue",
+    "Draft",
+    "Disputed",
   ];
+
+  useEffect(() => {
+    dispatch(fetchInvoicesData({}));
+  }, [dispatch]);
 
   return (
     <div className="mt-6 flex flex-col justify-center gap-2.5 bg-white rounded-2xl w-full">
@@ -148,69 +89,79 @@ const InvoiceList = () => {
       {/* Invoice List */}
       {open && (
         <div className="flex flex-col justify-center gap-2.5">
-          {invoices.map((invoice) => (
-            <div
-              key={invoice.id}
-              className="flex items-center justify-between px-3 py-4 border border-light_gray rounded-2xl"
-            >
-              <div className="flex flex-col justify-center gap-1">
-                <p className="text-sm font-medium font-roboto text-gray_brand">
-                  {invoice.clientName}
-                </p>
-                <p className="text-xs text-sparko-dark-gray font-roboto">
-                  {invoice.amount}, Due: {invoice.dueDate}
-                </p>
-              </div>
+          {loading && (
+            <p className="text-gray-500 text-sm">Loading invoices...</p>
+          )}
 
-              {/* Status */}
-              <div className="flex items-center gap-2">
-                {invoice.status === "Draft" ? (
-                  <button className="flex justify-center items-center gap-3 ">
-                    <div
-                      className={`text-xs font-roboto font-medium rounded-3xl px-[15px] py-[9px] ${
+          {!loading &&
+            invoices.map((invoice: Invoice) => (
+              <div
+                key={invoice.id}
+                className="flex items-center justify-between px-3 py-4 border border-light_gray rounded-2xl"
+              >
+                <div className="flex flex-col justify-center gap-1">
+                  <p className="text-sm font-medium font-roboto text-gray_brand">
+                    {invoice.clientName}
+                  </p>
+                  <p className="text-xs text-sparko-dark-gray font-roboto">
+                    {invoice.amount.toLocaleString("en-IN", {
+                      style: "currency",
+                      currency: "INR",
+                    })}
+                    , Due: {invoice.dueDate}
+                  </p>
+                </div>
+
+                {/* Status */}
+                <div className="flex items-center gap-2">
+                  {invoice.status === "Draft" ? (
+                    <button className="flex justify-center items-center gap-3 ">
+                      <div
+                        className={`text-xs font-roboto font-medium rounded-3xl px-[15px] py-[9px] ${
+                          statusStyles[invoice.status]
+                        }`}
+                      >
+                        {invoice.status}
+                      </div>
+                      <Pencil className="w-[14px] h-[14px] text-sparko-dark-gray" />
+                    </button>
+                  ) : invoice.status === "Awaited" ||
+                    invoice.status === "Overdue" ? (
+                    <button className="flex justify-center items-center gap-3 ">
+                      <div
+                        className={`text-xs font-roboto font-medium rounded-3xl px-[15px] py-[9px] ${
+                          statusStyles[invoice.status]
+                        }`}
+                      >
+                        {invoice.status}
+                      </div>
+                      <img src="/bell.png" alt="notification" />
+                    </button>
+                  ) : invoice.status === "Update Status" ? (
+                    <StatusDropdown
+                      value={invoice.status}
+                      options={invoiceStatuses}
+                      onChange={(newStatus) => {
+                        dispatch(
+                          updateInvoiceStatus({
+                            id: invoice.id,
+                            status: newStatus,
+                          })
+                        );
+                      }}
+                    />
+                  ) : (
+                    <button
+                      className={`flex justify-center items-center gap-3 text-xs font-roboto font-medium rounded-3xl px-[15px] py-[9px] ${
                         statusStyles[invoice.status]
                       }`}
                     >
                       {invoice.status}
-                    </div>
-                    <Pencil className="w-[14px] h-[14px] text-sparko-dark-gray" />
-                  </button>
-                ) : invoice.status === "Awaited" ||
-                  invoice.status === "Overdue" ? (
-                  <button className="flex justify-center items-center gap-3 ">
-                    <div
-                      className={`text-xs font-roboto font-medium rounded-3xl px-[15px] py-[9px] ${
-                        statusStyles[invoice.status]
-                      }`}
-                    >
-                      {invoice.status}
-                    </div>
-                    <div>
-                      {/* <Bell /> */}
-                      <img src="/bell.png" alt="" />
-                    </div>
-                  </button>
-                ) : invoice.status === "Update Status" ? (
-                  <button
-                    className={`flex justify-center items-center gap-[7.5px] text-xs font-roboto font-medium rounded-3xl px-[15px] py-[9px] ${
-                      statusStyles[invoice.status]
-                    }`}
-                  >
-                    {invoice.status}
-                    <ChevronDown open={open} color={"#FFFFFF"} />
-                  </button>
-                ) : (
-                  <button
-                    className={`flex justify-center items-center gap-3 text-xs font-roboto font-medium rounded-3xl px-[15px] py-[9px] ${
-                      statusStyles[invoice.status]
-                    }`}
-                  >
-                    {invoice.status}
-                  </button>
-                )}
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
     </div>
