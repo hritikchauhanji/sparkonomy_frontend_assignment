@@ -1,0 +1,36 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+
+@import "tailwindcss";
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("./fonts/SF-Pro-Display-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@theme {
+  --font-roboto: "Roboto", sans-serif;
+  --font-sf-pro-display: "SF Pro Display", sans-serif;
+  --color-pink_light: #e8cde7;
+  --color-pink-g: #dd2a7b;
+  --color-purple-g: #9747ff;
+  --color-blue-g: #334cca;
+  --color-primary: #8134af;
+  --color-sparko-dark-gray: #999999;
+  /* You can also make other variants if needed */
+  --color-pink-g-12: color-mix(in srgb, var(--color-pink-g) 12%, transparent);
+  --color-purple-g-12: color-mix(
+    in srgb,
+    var(--color-purple-g) 12%,
+    transparent
+  );
+  --color-blue-g-12: color-mix(in srgb, var(--color-blue-g) 12%, transparent);
+  --color-light_gray: #f2f2f2;
+  --color-gray_brand: #6b7280;
+  --color-light_red: #ffb1b1;
+  --color-pink_dark: #ff2d55;
+  --color-green_light: #9cefb8;
+  --color-green_dark: #34c759;
+  --color-yellow_light: #fffae5;
+  --color-yellow_dark: #ffcc00;
+}
