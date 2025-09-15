@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { setFilter } from "../store/dashboardSlice";
+import { fetchDashboardData, setFilter } from "../store/dashboardSlice";
 import type { FilterType } from "../types/dashboard";
 
 // Gradient Calendar Icon
@@ -61,21 +61,27 @@ const GradientCalendar = ({ size = 20, active = false }) => (
 //   </svg>
 // );
 
+const options: {
+  label: string;
+  value: FilterType;
+  premium?: boolean;
+  custom?: boolean;
+}[] = [
+  { label: "1 Month", value: "1Month" },
+  { label: "3 Months", value: "3Months" },
+  { label: "1 Year", value: "1Year", premium: true },
+  { label: "Calendar", value: "Calendar", custom: true },
+];
+
 export default function Filters() {
   const dispatch = useAppDispatch();
   const selected = useAppSelector((state) => state.dashboard.filter);
 
-  const options: {
-    label: string;
-    value: FilterType;
-    premium?: boolean;
-    custom?: boolean;
-  }[] = [
-    { label: "1 Month", value: "1 month" },
-    { label: "3 Months", value: "3 months" },
-    { label: "1 Year", value: "1 year", premium: true },
-    { label: "Calendar", value: "Calendar", custom: true },
-  ];
+  const handleClick = (v: FilterType) => {
+    dispatch(setFilter(v));
+    // You can pass customRange here if needed. Keep simple for now.
+    dispatch(fetchDashboardData({ filter: v }));
+  };
 
   return (
     <div className="w-full rounded-2xl border-2 border-light_gray py-4 px-3 bg-white">
@@ -96,7 +102,8 @@ export default function Filters() {
           return (
             <button
               key={option.value}
-              onClick={() => dispatch(setFilter(option.value))}
+              // onClick={() => dispatch(setFilter(option.value))}
+              onClick={() => handleClick(option.value)}
               className={`px-3 py-1 rounded-2xl border transition-all flex items-center gap-2 font-roboto border-gray-200
                 ${
                   isActive

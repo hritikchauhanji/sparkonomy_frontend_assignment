@@ -1,49 +1,39 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type {
   DashboardState,
-  Stats,
-  ChartData,
   FilterType,
+  CustomRange,
 } from "../types/dashboard";
+import { fetchDashboard } from "../services/dashboardApi";
+
+export const fetchDashboardData = createAsyncThunk(
+  "dashboard/fetchDashboardData",
+  async ({
+    filter,
+    customRange,
+  }: {
+    filter: FilterType;
+    customRange?: CustomRange;
+  }) => {
+    const res = await fetchDashboard(filter, customRange);
+    return { filter, ...res };
+  }
+);
 
 const initialState: DashboardState = {
-  filter: "1 year",
+  filter: "1Year",
   stats: {
-    totalEarnings: 125000,
-    paymentAwaited: 25000,
-    paymentOverdue: 25000,
+    totalEarnings: 0,
+    paymentAwaited: 0,
+    paymentOverdue: 0,
   },
-  statsByFilter: {
-    "1 month": {
-      totalEarnings: 3500,
-      paymentAwaited: 500,
-      paymentOverdue: 200,
-    },
-    "3 months": {
-      totalEarnings: 15000,
-      paymentAwaited: 2500,
-      paymentOverdue: 1000,
-    },
-    "1 year": {
-      totalEarnings: 125000,
-      paymentAwaited: 25000,
-      paymentOverdue: 25000,
-    },
-    Calendar: {
-      totalEarnings: 50000,
-      paymentAwaited: 10000,
-      paymentOverdue: 5000,
-    },
-  },
-  chartData: [
-    { month: "Jan", income: 3500, momGrowth: 0 },
-    { month: "Feb", income: 4750, momGrowth: 40 },
-    { month: "Mar", income: 6750, momGrowth: 20 },
-    { month: "Apr", income: 3250, momGrowth: -50 },
-    { month: "May", income: 5000, momGrowth: 80 },
-    { month: "Jun", income: 0, momGrowth: -100 },
-  ],
+  statsByFilter: {},
+  chartData: [],
+  chartDataByFilter: {},
+  customRange: null,
+  loading: false,
+  error: null,
 };
 
 const dashboardSlice = createSlice({
@@ -53,18 +43,38 @@ const dashboardSlice = createSlice({
     setFilter: (state, action: PayloadAction<FilterType>) => {
       state.filter = action.payload;
     },
-    setStats: (state, action: PayloadAction<Stats>) => {
-      state.stats = action.payload;
+    // setStats: (state, action: PayloadAction<Stats>) => {
+    //   state.stats = action.payload;
+    // },
+    // setChartData: (state, action: PayloadAction<ChartData[]>) => {
+    //   state.chartData = action.payload;
+    // },
+    setCustomRange: (state, action: PayloadAction<CustomRange | null>) => {
+      state.customRange = action.payload;
     },
-    setChartData: (state, action: PayloadAction<ChartData[]>) => {
-      state.chartData = action.payload;
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchDashboardData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDashboardData.fulfilled, (state, action) => {
+        const { filter, stats, chartData, customRange } = action.payload;
+        state.stats = stats;
+        state.chartData = chartData;
+        state.statsByFilter[filter] = stats;
+        state.chartDataByFilter[filter] = chartData;
+        state.customRange = customRange || null;
+        state.loading = false;
+      })
+      .addCase(fetchDashboardData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to fetch dashboard data";
+      });
   },
 });
 
-export const { setFilter, setStats, setChartData } = dashboardSlice.actions;
+// export const { setFilter, setStats, setChartData } = dashboardSlice.actions;
+export const { setFilter, setCustomRange } = dashboardSlice.actions;
 export default dashboardSlice.reducer;
-
-// {
-//   "1Month": { totalEarnings: 3500, paymentAwaited: 500, paymentOverdue: 200 }
-// }

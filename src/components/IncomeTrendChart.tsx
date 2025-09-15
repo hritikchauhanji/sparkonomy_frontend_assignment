@@ -22,19 +22,17 @@ import { useAppSelector } from "../store/hooks";
 // ];
 
 export default function IncomeTrendChart() {
-  const { chartData, filter } = useAppSelector((state) => state.dashboard);
-  console.log("Chart Data:", chartData);
+  const { chartData, loading } = useAppSelector((s) => s.dashboard);
 
-  let filteredData = chartData;
-  if (filter === "1 month") {
-    filteredData = chartData.slice(-1);
-  } else if (filter === "3 months") {
-    filteredData = chartData.slice(-3);
-  } else if (filter === "1 year") {
-    filteredData = chartData;
+  if (loading) {
+    return (
+      <div className="w-full max-w-lg mx-auto border-2 border-light_gray rounded-2xl bg-white p-4 animate-pulse">
+        <div className="h-6 w-40 bg-gray-200 rounded mb-3"></div>
+        <div className="h-4 w-60 bg-gray-200 rounded mb-6"></div>
+        <div className="h-72 w-full bg-gray-100 rounded"></div>
+      </div>
+    );
   }
-
-  const data = filteredData;
 
   return (
     <div className="w-full max-w-lg mx-auto border-2 border-light_gray rounded-2xl bg-white">
@@ -43,11 +41,11 @@ export default function IncomeTrendChart() {
           Income Trend
         </h2>
         <p className="text-lg font-roboto text-gray_brand">
-          Your monthly income and growth for the last {filter}.
+          Your monthly income and growth for the last 6 Months.
         </p>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={data}>
+            <ComposedChart data={chartData}>
               <XAxis
                 dataKey="month"
                 axisLine={false}

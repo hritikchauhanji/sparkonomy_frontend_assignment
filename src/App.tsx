@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   Header,
   CreateInvoiceCard,
@@ -7,8 +8,17 @@ import {
   InvoicesList,
   Footer,
 } from "./components";
+import { useAppDispatch, useAppSelector } from "./store/hooks";
+import { fetchDashboardData } from "./store/dashboardSlice";
 
 function App() {
+  const dispatch = useAppDispatch();
+  const filter = useAppSelector((s) => s.dashboard.filter);
+
+  useEffect(() => {
+    dispatch(fetchDashboardData({ filter }));
+  }, [dispatch, filter]);
+
   return (
     <div className="min-h-screen min-w-[390px] bg-gradient-to-b from-[var(--color-pink_light)] via-[var(--color-purple-g)] to-[var(--color-blue-g)]">
       <Header />

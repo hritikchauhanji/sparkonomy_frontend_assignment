@@ -1,29 +1,27 @@
 import { configureStore } from "@reduxjs/toolkit";
 import dashboardReducer from "./dashboardSlice";
 
-// --- Load persisted state from localStorage ---
+// --- Load persisted state ---
 const loadState = () => {
   try {
     const serializedState = localStorage.getItem("dashboardState");
     if (serializedState === null) return undefined;
     return JSON.parse(serializedState);
   } catch (err) {
-    console.error("Failed to load state:", err);
     return undefined;
   }
 };
 
-// --- Save state to localStorage ---
+// --- Save state ---
 const saveState = (state: any) => {
   try {
     const serializedState = JSON.stringify(state);
     localStorage.setItem("dashboardState", serializedState);
   } catch (err) {
-    console.error("Failed to save state:", err);
+    // ignore write errors
   }
 };
 
-// Load previous state (if available)
 const preloadedState = loadState();
 
 export const store = configureStore({
@@ -35,7 +33,6 @@ export const store = configureStore({
   },
 });
 
-// Save to localStorage whenever state changes
 store.subscribe(() => {
   saveState(store.getState().dashboard);
 });
